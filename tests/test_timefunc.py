@@ -15,7 +15,39 @@ from gtimes.timefunc import (
     shifTime,
     round_to_hour,
     convfromYearf,
+    datefgpsWeekSOW,
+    datefgpsWeekDOW,
 )
+
+
+class TestDatefgpsWeekSOW:
+    """Regression tests for datefgpsWeekSOW (Py3.10+ float→int datetime)."""
+
+    def test_integer_sow(self):
+        # GPS week 2086, SOW 388800 = 4.5 days into the week, noon GPS time.
+        # After 18s leap-sec correction → ~11:59:42 UTC on Thu 2020-01-02.
+        dt = datefgpsWeekSOW(2086, 388800, leapSecs=18)
+        assert isinstance(dt, datetime.datetime)
+        assert dt.year == 2020 and dt.month == 1
+        assert dt.weekday() == 3  # Thursday (Mon=0)
+        assert dt.microsecond == 0  # integer SOW → no subsecond
+
+    def test_fractional_sow_no_typeerror(self):
+        """
+        Regression: prior to the fix, fractional SOW caused
+        `TypeError: 'float' object cannot be interpreted as an integer`
+        on Python 3.10+ because the float seconds field was passed
+        directly to datetime.datetime().
+        """
+        dt = datefgpsWeekSOW(2086, 388800.5, leapSecs=18)
+        assert isinstance(dt, datetime.datetime)
+        # 0.5s should land as 500_000 microseconds (within rounding tolerance)
+        assert dt.microsecond == 500_000
+
+    def test_datefgpsweekdow_no_typeerror(self):
+        """datefgpsWeekDOW dispatches through datefgpsWeekSOW; covers same bug."""
+        dt = datefgpsWeekDOW(2086, 3, leapSecs=18)
+        assert isinstance(dt, datetime.datetime)
 
 
 class TestFractionalYear:
