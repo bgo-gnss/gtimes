@@ -62,7 +62,7 @@ The feature branch is now ready for higher-risk code improvements:
 ```bash
 # Your development setup:
 mamba activate new_gpslib
-cd /home/bgo/work/projects/gps/gpslibrary_new/gtimes
+cd /home/bgo/work/projects/gpslibrary/gtimes
 pip install -e .[dev]
 python run_tests.py --quality  # Run tests with quality checks
 ```
