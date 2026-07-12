@@ -80,14 +80,14 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bennigo/gtimes"
+Homepage = "https://github.com/bgo-gnss/gtimes"
 Documentation = "https://bennigo.github.io/gtimes"
-Repository = "https://github.com/bennigo/gtimes"
-Issues = "https://github.com/bennigo/gtimes/issues"
-Changelog = "https://github.com/bennigo/gtimes/blob/main/CHANGELOG.md"
-"Bug Tracker" = "https://github.com/bennigo/gtimes/issues"
-"Source Code" = "https://github.com/bennigo/gtimes"
-"CI/CD" = "https://github.com/bennigo/gtimes/actions"
+Repository = "https://github.com/bgo-gnss/gtimes"
+Issues = "https://github.com/bgo-gnss/gtimes/issues"
+Changelog = "https://github.com/bgo-gnss/gtimes/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/bgo-gnss/gtimes/issues"
+"Source Code" = "https://github.com/bgo-gnss/gtimes"
+"CI/CD" = "https://github.com/bgo-gnss/gtimes/actions"
 "Coverage" = "https://codecov.io/gh/bennigo/gtimes"
 
 [project.scripts]
