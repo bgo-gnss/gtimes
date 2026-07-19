@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `datefgpsWeekSOW` (and `datefgpsWeekDOW` via dispatch) raised
+  `TypeError: 'float' object cannot be interpreted as an integer` on Python
+  3.10+ when the seconds-of-week argument was fractional. `UTCFromGps`
+  returns the seconds field as `int + secFract`, which is a float; the result
+  was passed positionally to `datetime.datetime()`, which has rejected float
+  seconds since Python 3.10. Split into integer seconds and microseconds
+  before constructing the datetime; behaviour on Python <3.10 unchanged.
+- Removed two leftover `print()` debug statements at the top of
+  `datefgpsWeekSOW` that spammed `SOW: ...` and `gpsWeek: ...` on every call.
+
 ## [0.5.1] - 2026-04-29
 
 ### Fixed

@@ -1731,9 +1731,15 @@ def datefgpsWeekSOW(gpsWeek, SOW, String=None, leapSecs=None, mDay=False):
 
     """
 
-    print("SOW: {}".format(SOW))
-    print("gpsWeek: {}".format(gpsWeek))
-    day = datetime.datetime(*UTCFromGps(gpsWeek, SOW, leapSecs=leapSecs))
+    # UTCFromGps returns (Y, M, D, h, m, s_float) where s_float may carry
+    # subsecond precision when SOW is fractional. datetime.datetime() requires
+    # int seconds (Python 3.10+ enforces this), so split into integer seconds
+    # and microseconds.
+    utc = UTCFromGps(gpsWeek, SOW, leapSecs=leapSecs)
+    sec_float = utc[5]
+    sec = int(sec_float)
+    micro = int(round((sec_float - sec) * 1_000_000))
+    day = datetime.datetime(*utc[:5], sec, micro)
 
     if mDay:
         day = day.replace(hour=12, minute=0, second=0)
