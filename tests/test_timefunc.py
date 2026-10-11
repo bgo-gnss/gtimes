@@ -15,6 +15,10 @@ from gtimes.timefunc import (
     shifTime,
     round_to_hour,
     convfromYearf,
+    datetime_to_mjd,
+    mjd_to_datetime,
+    mjd_to_yearf,
+    yearf_to_mjd,
 )
 
 
@@ -86,6 +90,55 @@ class TestFractionalYear:
         assert dt_rounded.minute == 0
         assert dt_rounded.second == 0
         assert dt_rounded.microsecond == 0
+
+
+class TestModifiedJulianDate:
+    """MJD = days since 1858-11-17 00:00 (the .pos JJJJJ.JJJJ column)."""
+
+    @pytest.mark.parametrize(
+        "dt, mjd",
+        [
+            (datetime.datetime(1858, 11, 17), 0.0),
+            (datetime.datetime(1980, 1, 6), 44244.0),  # GPS epoch
+            (datetime.datetime(2000, 1, 1, 12), 51544.5),  # J2000
+            (datetime.datetime(2026, 10, 8, 11, 59), 61321 + 719 / 1440),
+        ],
+    )
+    def test_known_values(self, dt, mjd):
+        assert datetime_to_mjd(dt) == pytest.approx(mjd, abs=1e-9)
+        assert mjd_to_datetime(mjd) == dt
+
+    def test_aware_datetime_taken_in_utc(self):
+        tz = datetime.timezone(datetime.timedelta(hours=-2))
+        dt = datetime.datetime(2000, 1, 1, 10, tzinfo=tz)  # 12:00 UTC
+        assert datetime_to_mjd(dt) == pytest.approx(51544.5)
+
+    def test_string_output(self):
+        assert mjd_to_datetime(61321.4993).strftime("%Y-%m-%d") == "2026-10-08"
+
+    def test_yearf_round_trip(self):
+        # .pos epoch 2026-10-08 11:59 (doy 281): yearf as GLOBK writes it
+        mjd = 61321 + 719 / 1440
+        yearf = mjd_to_yearf(mjd)
+        assert yearf == pytest.approx(2026 + (280 + 719 / 1440) / 365, abs=1e-12)
+        assert yearf_to_mjd(yearf) == pytest.approx(mjd, abs=1e-9)
+        for m in np.linspace(44244.013, 69999.987, 997):
+            assert yearf_to_mjd(mjd_to_yearf(m)) == pytest.approx(m, abs=2e-10)  # < 20 us
+
+
+class TestSubSecondYearf:
+    """Sub-second parts survive the yearf conversions."""
+
+    def test_dtimetoyearf_keeps_microseconds(self):
+        a = dTimetoYearf(datetime.datetime(2020, 1, 1, 0, 0, 0))
+        b = dTimetoYearf(datetime.datetime(2020, 1, 1, 0, 0, 0, 500000))
+        assert (b - a) * 366 * 86400 == pytest.approx(0.5, abs=1e-6)
+
+    def test_timefromyearf_small_microseconds(self):
+        # 61648 us was parsed by %f as 0.61648 s before zero-padding
+        dt = datetime.datetime(2033, 11, 14, 18, 41, 53, 61648)
+        back = TimefromYearf(dTimetoYearf(dt))
+        assert abs((back - dt).total_seconds()) < 2e-5
 
 
 class TestRoundToHour:
