@@ -85,7 +85,8 @@ def dTimetoYearf(dtime: datetime.datetime) -> float:
         >>> print(f"Fractional year: {yearf:.6f}")
         Fractional year: 2008.245205
     """
-    return TimetoYearf(*dtime.timetuple()[0:6])
+    tt = dtime.timetuple()
+    return TimetoYearf(*tt[0:5], tt[5] + dtime.microsecond / 1e6)
 
 
 def TimetoYearf(year: int, month: int, day: int, hour=12, minute=0, sec=0) -> float:
@@ -186,7 +187,7 @@ def TimefromYearf(
     Sec = int(math.floor(fsec))  # second of minute
     musec = int(math.floor((fsec - Sec) * 1000000))  # microsecond 0 - 1000000
 
-    timestr = "%d %.3d %.2d:%.2d:%.2d %s" % (year, doy, Hour, Min, Sec, musec)
+    timestr = "%d %.3d %.2d:%.2d:%.2d %.6d" % (year, doy, Hour, Min, Sec, musec)
     # Create datetime object from timestr
     dt = datetime.datetime.strptime(timestr, "%Y %j %H:%M:%S %f")
     if rhour:
@@ -199,6 +200,49 @@ def TimefromYearf(
             return dt.strftime(String)
     else:  # just return the datetime instanse
         return dt
+
+
+#: Modified Julian Date zero point: MJD = JD - 2400000.5, days since 1858-11-17 00:00
+MJD_EPOCH = datetime.datetime(1858, 11, 17)
+
+
+def datetime_to_mjd(dtime: datetime.datetime) -> float:
+    """Convert a datetime to Modified Julian Date (days since 1858-11-17 00:00).
+
+    The time scale is that of ``dtime`` (no leap-second handling); a timezone-aware
+    datetime is taken in UTC. GLOBK/tssum ``.pos`` files give the epoch this way
+    (column ``JJJJJ.JJJJ``).
+
+    Example:
+        >>> round(datetime_to_mjd(datetime.datetime(2026, 10, 8, 11, 59)), 6)
+        61321.499306
+    """
+    if dtime.tzinfo is not None:
+        dtime = dtime.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    return (dtime - MJD_EPOCH) / datetime.timedelta(days=1)
+
+
+def mjd_to_datetime(mjd: float) -> datetime.datetime:
+    """Convert a Modified Julian Date to a (naive) datetime; inverse of
+    :func:`datetime_to_mjd`, to the microsecond.
+
+    Example:
+        >>> mjd_to_datetime(61321.4993)
+        datetime.datetime(2026, 10, 8, 11, 58, 59, 520000)
+    """
+    return MJD_EPOCH + datetime.timedelta(days=float(mjd))
+
+
+def mjd_to_yearf(mjd: float) -> float:
+    """Modified Julian Date -> fractional year (the :func:`TimetoYearf` convention)."""
+    return dTimetoYearf(mjd_to_datetime(mjd))
+
+
+def yearf_to_mjd(yearf: float) -> float:
+    """Fractional year (the :func:`TimetoYearf` convention) -> Modified Julian Date."""
+    dt = TimefromYearf(yearf)
+    assert isinstance(dt, datetime.datetime)  # no String: always a datetime
+    return datetime_to_mjd(dt)
 
 
 def currDatetime(

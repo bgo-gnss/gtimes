@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Modified Julian Date conversions in `gtimes.timefunc` (exported from `gtimes`):
+  `datetime_to_mjd`, `mjd_to_datetime`, `mjd_to_yearf`, `yearf_to_mjd`, and the
+  `MJD_EPOCH` constant (1858-11-17 00:00). MJD is the epoch column of GLOBK/tssum
+  PBO `.pos` files.
+
+### Fixed
+- `TimefromYearf` parsed the microseconds without zero padding (`%s` read by
+  `%f`), so a time with fewer than 100000 microseconds came back up to 0.9 s
+  late (61648 us read as 0.61648 s).
+- `dTimetoYearf` dropped the microseconds of the datetime.
+
 ## [0.5.1] - 2026-04-29
 
 ### Fixed
