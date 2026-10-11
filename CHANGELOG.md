@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-11
+
 ### Added
 - Modified Julian Date conversions in `gtimes.timefunc` (exported from `gtimes`):
   `datetime_to_mjd`, `mjd_to_datetime`, `mjd_to_yearf`, `yearf_to_mjd`, and the
